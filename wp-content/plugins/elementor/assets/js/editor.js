@@ -1,4 +1,4 @@
-/*! elementor - v2.3.4 - 29-11-2018 */
+/*! elementor - v2.3.8 - 20-12-2018 */
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -555,9 +555,9 @@ ControlBaseDataView = ControlBaseView.extend({
 	onResponsiveSwitchersClick: function onResponsiveSwitchersClick(event) {
 		var device = jQuery(event.currentTarget).data('device');
 
-		elementor.changeDeviceMode(device);
-
 		this.triggerMethod('responsive:switcher:click', device);
+
+		elementor.changeDeviceMode(device);
 	},
 
 	renderResponsiveSwitchers: function renderResponsiveSwitchers() {
@@ -2645,7 +2645,9 @@ ControlsStack = Marionette.CompositeView.extend({
 	},
 
 	onDeviceModeChange: function onDeviceModeChange() {
-		this.$el.removeClass('elementor-responsive-switchers-open');
+		if ('desktop' === elementor.channels.deviceMode.request('currentMode')) {
+			this.$el.removeClass('elementor-responsive-switchers-open');
+		}
 	},
 
 	onChildviewControlSectionClicked: function onChildviewControlSectionClicked(childView) {
@@ -12612,6 +12614,9 @@ ColumnView = BaseElementView.extend({
 			onDropping: function onDropping(side, event) {
 				event.stopPropagation();
 
+				// Triggering drag end manually, since it won't fired above iframe
+				elementor.getPreviewView().onPanelElementDragEnd();
+
 				var newIndex = jQuery(this).index();
 
 				if ('bottom' === side) {
@@ -18399,10 +18404,15 @@ BaseSectionsContainerView = BaseContainer.extend({
 	},
 
 	onPanelElementDragStart: function onPanelElementDragStart() {
+		// A temporary workaround in order to fix Chrome's 70+ dragging above nested iframe bug
+		this.$el.find('.elementor-background-video-embed').hide();
+
 		elementor.helpers.disableElementEvents(this.$el.find('iframe'));
 	},
 
 	onPanelElementDragEnd: function onPanelElementDragEnd() {
+		this.$el.find('.elementor-background-video-embed').show();
+
 		elementor.helpers.enableElementEvents(this.$el.find('iframe'));
 	}
 });
